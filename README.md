@@ -1,5 +1,7 @@
 # flutter-observability-lab
 
+Reference Flutter application for practicing containerization, observability, troubleshooting, telemetry and CI/CD in a safe local environment before enterprise deployment.
+
 Laboratório local para **validar o contrato de observabilidade de uma jornada de pagamento** antes de aplicar no ambiente real com Datadog.
 
 Sobe em Docker (WSL ou Linux) um BFF, um payment-service e um adquirente simulados, instrumentados com `dd-trace`, e um **dashboard Flutter Web** no navegador para disparar cenários e ver, para cada execução, se as regras de observabilidade passaram.
