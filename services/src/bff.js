@@ -1,6 +1,7 @@
 // BFF da loja: porta de entrada do app para a jornada de pagamento,
 // mais os endpoints do laboratório (cenários, validações, métricas, status).
 const express = require('express');
+const net = require('net');
 const { journeyMiddleware, forwardHeaders, callService } = require('./journey');
 const { logsByExecution, journeyLogs, SERVICE, ENV, VERSION } = require('./logger');
 const { validate, CHECKS, LATENCY_LIMITS_MS, REQUIRED_FIELDS } = require('./validator');
@@ -13,6 +14,16 @@ const AGENT_HOST = process.env.DD_AGENT_HOST || 'datadog-agent';
 const PORT = Number(process.env.PORT || 8080);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const probeTcp = (host, port, timeoutMs) => new Promise((resolve) => {
+  const socket = net.createConnection({ host, port });
+  const finish = (reachable) => {
+    socket.destroy();
+    resolve(reachable);
+  };
+  socket.setTimeout(timeoutMs, () => finish(false));
+  socket.once('connect', () => finish(true));
+  socket.once('error', () => finish(false));
+});
 const pct = (arr, p) => {
   if (!arr.length) return null;
   const s = [...arr].sort((a, b) => a - b);
@@ -182,18 +193,22 @@ module.exports = function bffApp() {
       const r = await callService(`${url}/health`, { method: 'GET', timeoutMs: 1500 });
       return r.ok ? 'up' : 'down';
     };
-    const agent = await callService(`http://${AGENT_HOST}:8126/info`, { method: 'GET', timeoutMs: 800 });
+    const [paymentHealth, acquirerHealth] = await Promise.all([
+      health(PAYMENT_URL),
+      health(ACQUIRER_URL),
+    ]);
+    const agentReachable = await probeTcp(AGENT_HOST, 8126, 800);
     res.json({
       env: ENV,
       version: VERSION,
       site: process.env.DD_SITE || 'datadoghq.com',
       services: {
         [SERVICE]: 'up',
-        [process.env.PAYMENT_SERVICE_NAME || 'loja-payment-service']: await health(PAYMENT_URL),
-        [process.env.ACQUIRER_SERVICE_NAME || 'adquirente-mock']: await health(ACQUIRER_URL),
+        [process.env.PAYMENT_SERVICE_NAME || 'loja-payment-service']: paymentHealth,
+        [process.env.ACQUIRER_SERVICE_NAME || 'adquirente-mock']: acquirerHealth,
       },
-      datadogAgent: agent.ok
-        ? { reachable: true, version: agent.json.version || null, host: AGENT_HOST }
+      datadogAgent: agentReachable
+        ? { reachable: true, host: AGENT_HOST }
         : { reachable: false, host: AGENT_HOST },
     });
   });

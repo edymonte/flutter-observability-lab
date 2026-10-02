@@ -6,6 +6,11 @@ Sobe em Docker (WSL ou Linux) um BFF, um payment-service e um adquirente simulad
 
 Funciona **sem conta Datadog** (modo local). Com `DD_API_KEY` e/ou um client token de RUM, os mesmos traces, logs e sessões chegam ao Datadog.
 
+> **Direção do MVP:** este repositório é a baseline executável. O plano original de
+> OpenTelemetry + Elastic foi mantido como referência de evolução, sem misturar as
+> stacks nesta etapa. Veja [`docs/MVP_DECISION.md`](docs/MVP_DECISION.md) para a
+> comparação, o escopo aprovado e o próximo milestone.
+
 ```
 Navegador (Flutter Web + RUM opcional)
         │  /api/v1/pagamento/*   (nginx, mesmo domínio)
@@ -26,6 +31,20 @@ docker compose up -d --build
 ```
 
 Abra **http://localhost:3000** no navegador do Windows.
+
+Se a porta 3000 já estiver em uso, defina outra no `.env`, por exemplo
+`DASHBOARD_PORT=3001`, e abra **http://localhost:3001**.
+
+### Kubernetes local
+
+Para simular a topologia em um Kubernetes de um node, com quatro pods e sem
+provedor externo, use o perfil Minikube documentado em
+[`docs/KUBERNETES_LOCAL.md`](docs/KUBERNETES_LOCAL.md).
+
+```powershell
+.\scripts\k8s-up.ps1
+wsl.exe -e sh -lc '~/.local/bin/kubectl port-forward service/dashboard 3001:80 -n flutter-observability-lab'
+```
 
 O primeiro build do dashboard baixa a imagem do Flutter (≈ 2 GB) e leva alguns minutos. Os seguintes usam cache.
 
