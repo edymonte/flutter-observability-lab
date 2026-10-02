@@ -1,0 +1,516 @@
+{
+  "title": "Jornada de Pagamento — Observability Lab",
+  "description": "Gerado pelo flutter-observability-lab. Espelha o painel \"Saúde por etapa\" do dashboard local.",
+  "layout_type": "ordered",
+  "template_variables": [
+    {
+      "name": "env",
+      "prefix": "env",
+      "available_values": [],
+      "default": "lab"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "type": "note",
+        "content": "**Jornada de Pagamento — MVP (laboratório)**\n\nFonte: logs `journey.step` do BFF (`service:loja-bff-pagamento`). Sucesso técnico (`@technical.outcome`) é separado do resultado de negócio (`@business.outcome`): recusa e pendência não são erro.\n\nPré-requisito: facets `@journey.stage`, `@technical.outcome`, `@business.outcome`, `@test.scenario` e a measure `@duration_ms` (ms).",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "left",
+        "show_tick": false,
+        "has_padding": true
+      }
+    },
+    {
+      "definition": {
+        "type": "query_value",
+        "title": "Iniciar — sucesso técnico",
+        "title_size": "16",
+        "title_align": "left",
+        "autoscale": false,
+        "precision": 1,
+        "custom_unit": "%",
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "logs",
+                "name": "ok",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env @journey.stage:pagamento.iniciar @technical.outcome:success"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": []
+              },
+              {
+                "data_source": "logs",
+                "name": "total",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env @journey.stage:pagamento.iniciar"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": []
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "100 * ok / total"
+              }
+            ],
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 80,
+                "palette": "white_on_red"
+              },
+              {
+                "comparator": "<",
+                "value": 90,
+                "palette": "white_on_yellow"
+              },
+              {
+                "comparator": ">=",
+                "value": 90,
+                "palette": "white_on_green"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "query_value",
+        "title": "Autorizar — sucesso técnico",
+        "title_size": "16",
+        "title_align": "left",
+        "autoscale": false,
+        "precision": 1,
+        "custom_unit": "%",
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "logs",
+                "name": "ok",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env @journey.stage:pagamento.autorizar @technical.outcome:success"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": []
+              },
+              {
+                "data_source": "logs",
+                "name": "total",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env @journey.stage:pagamento.autorizar"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": []
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "100 * ok / total"
+              }
+            ],
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 80,
+                "palette": "white_on_red"
+              },
+              {
+                "comparator": "<",
+                "value": 90,
+                "palette": "white_on_yellow"
+              },
+              {
+                "comparator": ">=",
+                "value": 90,
+                "palette": "white_on_green"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "query_value",
+        "title": "Confirmar — sucesso técnico",
+        "title_size": "16",
+        "title_align": "left",
+        "autoscale": false,
+        "precision": 1,
+        "custom_unit": "%",
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "logs",
+                "name": "ok",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env @journey.stage:pagamento.confirmar @technical.outcome:success"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": []
+              },
+              {
+                "data_source": "logs",
+                "name": "total",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env @journey.stage:pagamento.confirmar"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": []
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "100 * ok / total"
+              }
+            ],
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 80,
+                "palette": "white_on_red"
+              },
+              {
+                "comparator": "<",
+                "value": 90,
+                "palette": "white_on_yellow"
+              },
+              {
+                "comparator": ">=",
+                "value": 90,
+                "palette": "white_on_green"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Volume por etapa e outcome técnico",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "requests": [
+          {
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "data_source": "logs",
+                "name": "q",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": [
+                  {
+                    "facet": "@journey.stage",
+                    "limit": 5,
+                    "sort": {
+                      "aggregation": "count",
+                      "order": "desc"
+                    }
+                  },
+                  {
+                    "facet": "@technical.outcome",
+                    "limit": 5,
+                    "sort": {
+                      "aggregation": "count",
+                      "order": "desc"
+                    }
+                  }
+                ]
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "q"
+              }
+            ],
+            "display_type": "bars"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "toplist",
+        "title": "Resultado de negócio na autorização",
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "logs",
+                "name": "q",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env @journey.stage:pagamento.autorizar"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": [
+                  {
+                    "facet": "@business.outcome",
+                    "limit": 10,
+                    "sort": {
+                      "aggregation": "count",
+                      "order": "desc"
+                    }
+                  }
+                ]
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "q",
+                "limit": {
+                  "count": 10,
+                  "order": "desc"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "p95 de duração por etapa (ms)",
+        "show_legend": true,
+        "requests": [
+          {
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "data_source": "logs",
+                "name": "q",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "pc95",
+                  "metric": "@duration_ms"
+                },
+                "group_by": [
+                  {
+                    "facet": "@journey.stage",
+                    "limit": 5,
+                    "sort": {
+                      "aggregation": "pc95",
+                      "metric": "@duration_ms",
+                      "order": "desc"
+                    }
+                  }
+                ]
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "q"
+              }
+            ],
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          {
+            "value": "y = 1000",
+            "display_type": "error dashed",
+            "label": "limite autorizar"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "toplist",
+        "title": "Falhas técnicas por etapa e tipo",
+        "requests": [
+          {
+            "response_format": "scalar",
+            "queries": [
+              {
+                "data_source": "logs",
+                "name": "q",
+                "search": {
+                  "query": "service:loja-bff-pagamento @event:journey.step $env -@technical.outcome:success"
+                },
+                "indexes": [
+                  "*"
+                ],
+                "compute": {
+                  "aggregation": "count"
+                },
+                "group_by": [
+                  {
+                    "facet": "@journey.stage",
+                    "limit": 5,
+                    "sort": {
+                      "aggregation": "count",
+                      "order": "desc"
+                    }
+                  },
+                  {
+                    "facet": "@technical.outcome",
+                    "limit": 5,
+                    "sort": {
+                      "aggregation": "count",
+                      "order": "desc"
+                    }
+                  }
+                ]
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "q",
+                "limit": {
+                  "count": 10,
+                  "order": "desc"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "APM — requisições e erros (BFF, payment, adquirente)",
+        "show_legend": true,
+        "requests": [
+          {
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "hits",
+                "query": "sum:trace.express.request.hits{$env} by {service}.as_count()"
+              },
+              {
+                "data_source": "metrics",
+                "name": "errors",
+                "query": "sum:trace.express.request.errors{$env} by {service}.as_count()"
+              }
+            ],
+            "formulas": [
+              {
+                "formula": "hits",
+                "alias": "hits"
+              },
+              {
+                "formula": "errors",
+                "alias": "erros"
+              }
+            ],
+            "display_type": "bars"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "list_stream",
+        "title": "Últimos journey.step com falha técnica",
+        "requests": [
+          {
+            "response_format": "event_list",
+            "query": {
+              "data_source": "logs_stream",
+              "query_string": "service:loja-bff-pagamento @event:journey.step $env -@technical.outcome:success",
+              "indexes": [],
+              "storage": "hot"
+            },
+            "columns": [
+              {
+                "field": "status_line",
+                "width": "auto"
+              },
+              {
+                "field": "timestamp",
+                "width": "auto"
+              },
+              {
+                "field": "@journey.stage",
+                "width": "auto"
+              },
+              {
+                "field": "@technical.outcome",
+                "width": "auto"
+              },
+              {
+                "field": "@test.scenario",
+                "width": "auto"
+              },
+              {
+                "field": "@correlation.id",
+                "width": "auto"
+              },
+              {
+                "field": "content",
+                "width": "compact"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "notify_list": [],
+  "reflow_type": "auto"
+}

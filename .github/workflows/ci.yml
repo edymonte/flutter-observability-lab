@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  contrato-observabilidade:
+    name: Suíte de cenários (contrato de observabilidade)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Subir BFF, payment-service e adquirente
+        run: docker compose up -d --build bff payment acquirer
+      - name: Rodar suíte
+        run: ./scripts/smoke.sh
+      - name: Logs dos serviços (em caso de falha)
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Derrubar
+        if: always()
+        run: docker compose down -v
+
+  dashboard-build:
+    name: Build do dashboard Flutter Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build da imagem
+        run: docker build -t flutter-observability-lab-dashboard ./dashboard

@@ -1,0 +1,102 @@
+name: flutter-observability-lab
+
+x-service-common: &service-common
+  build: ./services
+  restart: unless-stopped
+  networks: [lab]
+
+x-dd-common: &dd-common
+  DD_ENV: ${DD_ENV:-lab}
+  DD_VERSION: ${DD_VERSION:-0.1.0}
+  DD_SITE: ${DD_SITE:-datadoghq.com}
+  DD_AGENT_HOST: datadog-agent
+  DD_LOGS_INJECTION: "true"
+  DD_TRACE_STARTUP_LOGS: "false"
+  DD_TRACE_SAMPLE_RATE: "1"
+  PAYMENT_URL: http://payment:8081
+  ACQUIRER_URL: http://acquirer:8082
+  SLO_INICIAR_MS: ${SLO_INICIAR_MS:-500}
+  SLO_AUTORIZAR_MS: ${SLO_AUTORIZAR_MS:-1000}
+  SLO_CONFIRMAR_MS: ${SLO_CONFIRMAR_MS:-500}
+  ACQUIRER_TIMEOUT_MS: ${ACQUIRER_TIMEOUT_MS:-2000}
+
+services:
+  bff:
+    <<: *service-common
+    environment:
+      <<: *dd-common
+      ROLE: bff
+      DD_SERVICE: loja-bff-pagamento
+      PAYMENT_SERVICE_NAME: loja-payment-service
+      ACQUIRER_SERVICE_NAME: adquirente-mock
+    ports: ["8080:8080"]
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-lab}
+      com.datadoghq.tags.service: loja-bff-pagamento
+      com.datadoghq.tags.version: ${DD_VERSION:-0.1.0}
+      com.datadoghq.ad.logs: '[{"source":"nodejs","service":"loja-bff-pagamento"}]'
+    depends_on: [payment]
+
+  payment:
+    <<: *service-common
+    environment:
+      <<: *dd-common
+      ROLE: payment
+      DD_SERVICE: loja-payment-service
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-lab}
+      com.datadoghq.tags.service: loja-payment-service
+      com.datadoghq.tags.version: ${DD_VERSION:-0.1.0}
+      com.datadoghq.ad.logs: '[{"source":"nodejs","service":"loja-payment-service"}]'
+    depends_on: [acquirer]
+
+  acquirer:
+    <<: *service-common
+    environment:
+      <<: *dd-common
+      ROLE: acquirer
+      DD_SERVICE: adquirente-mock
+    labels:
+      com.datadoghq.tags.env: ${DD_ENV:-lab}
+      com.datadoghq.tags.service: adquirente-mock
+      com.datadoghq.tags.version: ${DD_VERSION:-0.1.0}
+      com.datadoghq.ad.logs: '[{"source":"nodejs","service":"adquirente-mock"}]'
+
+  dashboard:
+    build: ./dashboard
+    restart: unless-stopped
+    networks: [lab]
+    environment:
+      DD_ENV: ${DD_ENV:-lab}
+      DD_VERSION: ${DD_VERSION:-0.1.0}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_RUM_APPLICATION_ID: ${DD_RUM_APPLICATION_ID:-}
+      DD_RUM_CLIENT_TOKEN: ${DD_RUM_CLIENT_TOKEN:-}
+      DD_RUM_SERVICE: loja-app-pagamento-web
+    ports: ["${DASHBOARD_PORT:-3000}:80"]
+    depends_on: [bff]
+
+  # Opcional: só sobe com  docker compose --profile datadog up -d
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:7
+    profiles: [datadog]
+    restart: unless-stopped
+    networks: [lab]
+    environment:
+      DD_API_KEY: ${DD_API_KEY:-}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_ENV: ${DD_ENV:-lab}
+      DD_HOSTNAME: flutter-observability-lab
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "false"
+      DD_CONTAINER_EXCLUDE: "name:datadog-agent"
+      DD_PROCESS_AGENT_ENABLED: "false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+
+networks:
+  lab: {}

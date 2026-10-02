@@ -1,0 +1,13 @@
+.env
+node_modules/
+# Flutter
+dashboard/.dart_tool/
+dashboard/build/
+dashboard/.flutter-plugins
+dashboard/.flutter-plugins-dependencies
+dashboard/pubspec.lock
+dashboard/.metadata
+dashboard/test/
+*.iml
+.idea/
+.vscode/
